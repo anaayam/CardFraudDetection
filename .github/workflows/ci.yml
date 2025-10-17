@@ -1,0 +1,70 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Check dependencies
+      run: python main.py --check
+    
+    - name: Run data preprocessing test
+      run: python data_preprocessing.py
+    
+    - name: Run model training test
+      run: python model_training.py
+    
+    - name: Test API imports
+      run: python -c "import fastapi_service; print('FastAPI service imports successfully')"
+    
+    - name: Test Dashboard imports
+      run: python -c "import streamlit_dashboard; print('Streamlit dashboard imports successfully')"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+    
+    - name: Install linting tools
+      run: |
+        pip install flake8 black
+    
+    - name: Run black formatter check
+      run: black --check *.py
+    
+    - name: Run flake8 linter
+      run: flake8 *.py --count --select=E9,F63,F7,F82 --show-source --statistics
