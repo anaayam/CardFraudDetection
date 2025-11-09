@@ -83,7 +83,7 @@ python main.py --serve
 - Runs API + Dashboard simultaneously
 - Full-stack fraud detection system
 
-## 📊 Model Performance
+## 📊 Model Performance 
 
 | Model | Accuracy | Precision | Recall | F1-Score | AUC |
 |-------|----------|-----------|--------|----------|-----|
